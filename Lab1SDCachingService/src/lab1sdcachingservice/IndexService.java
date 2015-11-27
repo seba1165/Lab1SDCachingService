@@ -28,12 +28,26 @@ class HiloIndexService extends Thread{
     String sentence;
     String fromServer;
     
+    static String[] queries = {"query 1", "query 2", "query 3", "query 4", "query 5", "query 6", "query 7", "query 8", "query 9", "query 10", "query 11", "query 12", "query 13", "query 14", "query 15", "query 16", "query 17", "query 18", "query 19", "query 20"};
+    static String answers[] = {"answer 1", "answer 2", "answer 3", "answer 4", "answer 5", "answer 6", "answer 7", "answer 8", "answer 9", "answer 10", "answer 11", "answer 12", "answer 13", "answer 14", "answer 15", "answer 16", "answer 17", "answer 18", "answer 19", "answer 20"};
+    
     public HiloIndexService(int id) {
         this.id = id;
+    }
+    
+     public static String getEntry(String query) {
+        for (int i = 0; i < queries.length; i++) {
+            if (queries[i].equals(query)) {
+                return answers[i];
+            }
+        }
+        return null;
     }
     @Override
     public void run() {
         try {
+            
+            
             inFromUser = new BufferedReader(new InputStreamReader(System.in));
             //Socket para el cliente (host, puerto)
             socketClient = new Socket("localhost", 5000);
@@ -45,11 +59,13 @@ class HiloIndexService extends Thread{
             //sentence = inFromUser.readLine();
             
             String[] requests = {
-            "GET /respuestas/hola", // <p>hola mundo</>
-            "GET /users",
-            "GET /users/1234",
-            "GET /users/55556",
-            "ABC /users/1234",};
+            "ABC /users/1234",
+            "POST /users username=gbenussi&password=contrasena", // adasdas
+            "POST /respuestas/hola body=<p>hola mundo</>",
+            "POST /respuestas/hola body=<asdasdasdasdasd",
+            "PUT /respuestas/hola title=hola+mundo", // aasdsadasdsa ACTUALIZA
+            "PUT /users/1234 username=giovanni", // aasdsadasdsa ACTUALIZA
+            };
             
             for (int i = 0; i < requests.length; i++) {
                 System.out.println(requests[i]);
@@ -67,7 +83,7 @@ class HiloIndexService extends Thread{
             outToServer.close();
             socketClient.close();
         } catch (IOException ex) {
-            Logger.getLogger(HiloFrontService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(HiloIndexService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

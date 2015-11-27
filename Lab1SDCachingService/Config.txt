@@ -1,0 +1,2 @@
+cachesize 3
+cachepartition 3 

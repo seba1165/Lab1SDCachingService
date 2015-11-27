@@ -21,10 +21,12 @@ public class HiloCachingService extends Thread {
     private int idSession;
     String fromClient;
     String processedData;
+    MemCache MemCompartida;
     
-    public HiloCachingService(Socket socket, int id) {
+    public HiloCachingService(Socket socket, int id, MemCache MemCompartida) {
         this.socket = socket;
         this.idSession = id;
+        this.MemCompartida = MemCompartida;
         try {
             outToClient = new DataOutputStream(socket.getOutputStream());
             inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -44,8 +46,12 @@ public class HiloCachingService extends Thread {
     @Override
     public void run() {
         try {
+            System.out.println("Servidor "+ idSession);
             fromClient =inFromClient.readLine();
             //System.out.println("Received: " + fromClient+" from client " + idSession);
+            
+            //Prueba de modificacion de memoria
+            MemCompartida.cache.put("query " + idSession, "answer hilo");
             
             //Identifica quien envio mensaje
             String request = fromClient;
@@ -61,12 +67,14 @@ public class HiloCachingService extends Thread {
 
             String meta_data = tokens.length > 2 ? tokens[2] : "";
             
+            /*
             System.out.println("\nConsulta: " + request);
             System.out.println("HTTP METHOD: " + http_method);
             System.out.println("Resource: " + resource);
             System.out.println("ID:          " + id);
             System.out.println("META DATA:    " + meta_data);
-            
+            */
+            /*
             switch (http_method) {
                 case "GET":
                     if (id == "") {
@@ -98,15 +106,15 @@ public class HiloCachingService extends Thread {
                 default:
                     System.out.println("Not a valid HTTP Request");
                     break;
-            }
+            }/*
             
             /*Procedimiento
             
             */
             
-            String reverse = new StringBuffer(fromClient).reverse().toString() + '\n';
+            //String reverse = new StringBuffer(fromClient).reverse().toString() + '\n';
             //Cambiar por JSON
-            outToClient.writeBytes(reverse);
+            //outToClient.writeBytes(reverse);
             
         } catch (IOException ex) {
             Logger.getLogger(HiloCachingService.class.getName()).log(Level.SEVERE, null, ex);
