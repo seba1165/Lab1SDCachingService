@@ -15,7 +15,6 @@ public class MemCache {
     
     int size;
     LinkedHashMap<String, String> cache;
-    int part;
     
     public String getEntryFromCache(String query) {
         String result = cache.get(query);
@@ -26,9 +25,8 @@ public class MemCache {
         return result;
     }
 
-    public MemCache(int size, int part) {
+    public MemCache(int size) {
         this.size = size;
-        this.part = part;
         this.cache = new LinkedHashMap<>();
     }
 
@@ -46,10 +44,22 @@ public class MemCache {
             cache.put(query, answer);
         }
     }
-
+    
     public void print() {
         System.out.println("===== My LRU Cache =====");
         System.out.println("| " + String.join(" | ", cache.keySet()) + " | ");
         System.out.println("========================");
+    }
+
+    public synchronized String leer_en_particion(boolean NoEscribiendo, String query) {
+        // Wait until message is
+        // available.
+        while (!NoEscribiendo) {
+            try {
+                System.out.println("Alguien esta escribiendo en la particion");
+                wait();
+            } catch (InterruptedException e) {}
+        }
+        return getEntryFromCache(query);
     }
 }

@@ -40,7 +40,7 @@ class HiloFrontService extends Thread {
             //sentence = inFromUser.readLine();
             
             String[] requests = {
-            "GET /respuestas/hola", // <p>hola mundo</>
+            "GET /respuestas/query1", // <p>hola mundo</>
             "GET /users",
             "GET /users/1234",
             "GET /users/55556",
@@ -50,7 +50,9 @@ class HiloFrontService extends Thread {
                 System.out.println(requests[i]);
             }
             System.out.print("Ingrese numero: ");
-            int numero = Integer.parseInt(inFromUser.readLine());
+            
+            //int numero = Integer.parseInt(inFromUser.readLine());
+            int numero = 0;
 
             outToServer.writeBytes(requests[numero]+"\n");
             
@@ -70,7 +72,7 @@ public class FrontService {
     
     public static void main(String[] args) {
         ArrayList<Thread> clients = new ArrayList<>();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 100; i++) {
             clients.add(new HiloFrontService(i));
         }
         for (Thread thread : clients) {

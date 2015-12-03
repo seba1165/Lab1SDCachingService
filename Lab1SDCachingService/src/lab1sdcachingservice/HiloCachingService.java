@@ -12,25 +12,36 @@ package lab1sdcachingservice;
 import java.io.*;
 import java.net.*;
 import java.util.logging.*;
-public class HiloCachingService extends Thread {
-    
+public class HiloCachingService implements Runnable {
+    //Atributos para conexion
     private Socket socket;
     private DataOutputStream outToClient;
-    //private DataInputStream dis;
     BufferedReader inFromClient;
-    private int idSession;
     String fromClient;
     String processedData;
-    MemCache MemCompartida;
+    //Id del hilo 
+    private int idSession;
+    //Atributos para el manejo del cache
+    MemCache[] MemCompartida;
+    MemCache miParticion;
+    boolean condicion_particion[];
+    int particiones;
+    boolean NoEscribiendo;
+    //String para mensaje enviado por el cliente;
+    String request;
     
-    public HiloCachingService(Socket socket, int id, MemCache MemCompartida) {
+    public HiloCachingService(Socket socket, int id, MemCache[] MemCompartida, boolean[] condicion_particion) throws IOException {
         this.socket = socket;
         this.idSession = id;
         this.MemCompartida = MemCompartida;
+        this.condicion_particion = condicion_particion;
+        this.particiones = condicion_particion.length;
         try {
             outToClient = new DataOutputStream(socket.getOutputStream());
             inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             //dis = new DataInputStream(socket.getInputStream());
+            fromClient =inFromClient.readLine();
+            request = fromClient;
             
         } catch (IOException ex) {
             Logger.getLogger(HiloCachingService.class.getName()).log(Level.SEVERE, null, ex);
@@ -43,18 +54,17 @@ public class HiloCachingService extends Thread {
             Logger.getLogger(HiloCachingService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    
+    
     @Override
     public void run() {
         try {
             System.out.println("Servidor "+ idSession);
-            fromClient =inFromClient.readLine();
+            
             //System.out.println("Received: " + fromClient+" from client " + idSession);
+
             
-            //Prueba de modificacion de memoria
-            MemCompartida.cache.put("query " + idSession, "answer hilo");
-            
-            //Identifica quien envio mensaje
-            String request = fromClient;
             String[] tokens = request.split(" ");
             String parametros = tokens[1];
             
@@ -67,14 +77,19 @@ public class HiloCachingService extends Thread {
 
             String meta_data = tokens.length > 2 ? tokens[2] : "";
             
-            /*
+            
             System.out.println("\nConsulta: " + request);
             System.out.println("HTTP METHOD: " + http_method);
             System.out.println("Resource: " + resource);
-            System.out.println("ID:          " + id);
+            System.out.println("ID:       " + id);
             System.out.println("META DATA:    " + meta_data);
-            */
-            /*
+            
+            int posicion_consulta = funcion_hash(id, condicion_particion.length);
+            miParticion = MemCompartida[posicion_consulta];
+            NoEscribiendo = condicion_particion[posicion_consulta];
+            
+            System.out.println("La consulta se deberia encontrar en la posicion "+posicion_consulta);
+            
             switch (http_method) {
                 case "GET":
                     if (id == "") {
@@ -85,6 +100,13 @@ public class HiloCachingService extends Thread {
                     } else {
                         System.out.println("El mensaje fue enviado por el FrontService");
                         System.out.println("Buscando en el cache de '" + resource + "' el registro con id " + id);
+                        String result;
+                        result = miParticion.leer_en_particion(NoEscribiendo, id);
+                         if (result == null) { // MISS
+                            System.out.println("MISS :(");
+                        }else{
+                            System.out.println("HIT !");
+                        }
                     }
                     break;
                 case "POST":
@@ -106,19 +128,26 @@ public class HiloCachingService extends Thread {
                 default:
                     System.out.println("Not a valid HTTP Request");
                     break;
-            }/*
+            }
             
-            /*Procedimiento
-            
-            */
-            
-            //String reverse = new StringBuffer(fromClient).reverse().toString() + '\n';
+            String reverse = new StringBuffer(fromClient).reverse().toString() + '\n';
             //Cambiar por JSON
-            //outToClient.writeBytes(reverse);
+            outToClient.writeBytes(reverse);
             
         } catch (IOException ex) {
             Logger.getLogger(HiloCachingService.class.getName()).log(Level.SEVERE, null, ex);
         }
         desconnectar();
     }
+    
+    int funcion_hash(String x, int particiones) {
+        char ch[];
+        ch = x.toCharArray();
+        int xlength = x.length();
+        int i, sum;
+        for (sum=0, i=0; i < x.length(); i++)
+            sum += ch[i];
+        return sum % particiones;
+    }
+     
 }

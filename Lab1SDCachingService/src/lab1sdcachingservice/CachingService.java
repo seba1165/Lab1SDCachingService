@@ -22,19 +22,53 @@ public class CachingService {
         String linea1 = br.readLine();
         String linea2 = br.readLine();
         
-        
-        
         String [] cacheCant = linea1.split(" ");
         String [] cachePart = linea2.split(" ");
         
         //Hacer validación
         int size = Integer.parseInt(cacheCant[1]);
-        int part = Integer.parseInt(cachePart[1]);
+        int canTpart = Integer.parseInt(cachePart[1]);
+       
+        int tamPart = size/canTpart;
+        int resto = size%canTpart;
+        //Si las particiones son mayores al tamaño del cache, se utiliza solo 1
+        //particion del tamaño ingresado
+        if (resto == size) {
+            canTpart = 1;
+            tamPart = size;
+        }
         
-        MemCache MemCompartida = new MemCache(3,2);
-        MemCompartida.cache.put("query1", "answer1");
-        MemCompartida.cache.put("query2", "answer2");
-        MemCompartida.cache.put("query3", "answer3");
+        boolean NoEscribiendo[] = new boolean[canTpart];
+                //Condiciones para controlar la escritura de los hilos en el servidor
+        for (int i = 0; i < canTpart; i++) {
+            NoEscribiendo[i] = true;
+        }
+
+        MemCache MemCompartida[] = new MemCache[canTpart];
+        
+        System.out.println(resto);
+        if (resto!=0 && resto!=size){
+            for (int i = 0; i < canTpart-1; i++) {
+                MemCompartida[i] = new MemCache(tamPart);
+            }
+            int ultimaPart = resto+tamPart;
+            MemCompartida[canTpart-1] = new MemCache(ultimaPart);
+        }else if (resto == size){
+            MemCompartida[0] = new MemCache(tamPart);
+        }else{
+            for (int i = 0; i < canTpart; i++) {
+                MemCompartida[i] = new MemCache(tamPart);
+            }
+        }
+        
+//        MemCompartida[0].cache.put("query1", "answer1");
+//        MemCompartida[0].cache.put("query2", "answer2");
+//        MemCompartida[1].cache.put("query3", "answer3");
+//        MemCompartida[1].cache.put("query4", "answer4");
+//        MemCompartida[2].cache.put("query5", "answer5");
+//        MemCompartida[2].cache.put("query6", "answer6");
+//        MemCompartida[2].cache.put("query7", "answer7");
+        
         
         System.out.println("");
         
@@ -51,12 +85,12 @@ public class CachingService {
                  //Socket listo para recibir
                 connectionSocket = acceptSocket.accept();
                 System.out.println("Nueva conexión entrante: "+connectionSocket);
-                ((HiloCachingService) new HiloCachingService(connectionSocket, idSession, MemCompartida)).start();
+                (new Thread (new HiloCachingService(connectionSocket, idSession, MemCompartida, NoEscribiendo))).start();
                 idSession++;
-                MemCompartida.print();
             }
         } catch (IOException ex) {
             Logger.getLogger(CachingService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+  
 }
