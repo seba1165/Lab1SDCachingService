@@ -51,15 +51,17 @@ public class MemCache {
         System.out.println("========================");
     }
 
-    public synchronized String leer_en_particion(boolean NoEscribiendo, String query) {
-        // Wait until message is
-        // available.
-        while (!NoEscribiendo) {
-            try {
-                System.out.println("Alguien esta escribiendo en la particion");
-                wait();
-            } catch (InterruptedException e) {}
+    public String leer_en_particion(boolean NoEscribiendo, String query) {
+        while(!NoEscribiendo){//Espera mientras alguien este escribiendo   
         }
         return getEntryFromCache(query);
+    }
+    
+    public void escribir_en_particion(boolean NoEscribiendo, String query, String answer, Object Mylock) {
+        synchronized (Mylock){
+            NoEscribiendo = false;
+            addEntryToCache(query, answer);
+            NoEscribiendo = true;
+        }
     }
 }

@@ -38,10 +38,12 @@ public class CachingService {
             tamPart = size;
         }
         
+        Object locks[] = new Object[canTpart];
         boolean NoEscribiendo[] = new boolean[canTpart];
                 //Condiciones para controlar la escritura de los hilos en el servidor
         for (int i = 0; i < canTpart; i++) {
             NoEscribiendo[i] = true;
+            locks[i] = new Object();
         }
 
         MemCache MemCompartida[] = new MemCache[canTpart];
@@ -61,13 +63,12 @@ public class CachingService {
             }
         }
         
-//        MemCompartida[0].cache.put("query1", "answer1");
-//        MemCompartida[0].cache.put("query2", "answer2");
-//        MemCompartida[1].cache.put("query3", "answer3");
-//        MemCompartida[1].cache.put("query4", "answer4");
-//        MemCompartida[2].cache.put("query5", "answer5");
-//        MemCompartida[2].cache.put("query6", "answer6");
-//        MemCompartida[2].cache.put("query7", "answer7");
+        MemCompartida[0].cache.put("query1", "answer1");
+        MemCompartida[0].cache.put("query2", "answer2");
+        MemCompartida[1].cache.put("query3", "answer3");
+        MemCompartida[1].cache.put("query4", "answer4");
+        MemCompartida[2].cache.put("query5", "answer5");
+        MemCompartida[2].cache.put("query6", "answer6");
         
         
         System.out.println("");
@@ -85,7 +86,10 @@ public class CachingService {
                  //Socket listo para recibir
                 connectionSocket = acceptSocket.accept();
                 System.out.println("Nueva conexión entrante: "+connectionSocket);
-                (new Thread (new HiloCachingService(connectionSocket, idSession, MemCompartida, NoEscribiendo))).start();
+                (new Thread (new HiloCachingService(connectionSocket, idSession, MemCompartida, NoEscribiendo, locks))).start();
+                MemCompartida[0].print();
+                MemCompartida[1].print();
+                MemCompartida[2].print();
                 idSession++;
             }
         } catch (IOException ex) {

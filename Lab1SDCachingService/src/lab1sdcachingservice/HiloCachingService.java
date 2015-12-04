@@ -27,15 +27,18 @@ public class HiloCachingService implements Runnable {
     boolean condicion_particion[];
     int particiones;
     boolean NoEscribiendo;
+    Object locks[];
+    Object Mylock;
     //String para mensaje enviado por el cliente;
     String request;
     
-    public HiloCachingService(Socket socket, int id, MemCache[] MemCompartida, boolean[] condicion_particion) throws IOException {
+    public HiloCachingService(Socket socket, int id, MemCache[] MemCompartida, boolean[] condicion_particion, Object locks[]) throws IOException {
         this.socket = socket;
         this.idSession = id;
         this.MemCompartida = MemCompartida;
         this.condicion_particion = condicion_particion;
         this.particiones = condicion_particion.length;
+        this.locks = locks;
         try {
             outToClient = new DataOutputStream(socket.getOutputStream());
             inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -47,6 +50,7 @@ public class HiloCachingService implements Runnable {
             Logger.getLogger(HiloCachingService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
     public void desconnectar() {
         try {
             socket.close();
@@ -54,8 +58,7 @@ public class HiloCachingService implements Runnable {
             Logger.getLogger(HiloCachingService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    
+
     
     @Override
     public void run() {
@@ -87,6 +90,7 @@ public class HiloCachingService implements Runnable {
             int posicion_consulta = funcion_hash(id, condicion_particion.length);
             miParticion = MemCompartida[posicion_consulta];
             NoEscribiendo = condicion_particion[posicion_consulta];
+            Mylock = locks[posicion_consulta];
             
             System.out.println("La consulta se deberia encontrar en la posicion "+posicion_consulta);
             
@@ -104,8 +108,10 @@ public class HiloCachingService implements Runnable {
                         result = miParticion.leer_en_particion(NoEscribiendo, id);
                          if (result == null) { // MISS
                             System.out.println("MISS :(");
+                            //Miss para Front service
                         }else{
                             System.out.println("HIT !");
+                            //Hit para front service
                         }
                     }
                     break;
@@ -116,6 +122,7 @@ public class HiloCachingService implements Runnable {
                         String[] parametros_meta = params.split("=");
                         System.out.println("\t* " + parametros_meta[0] + " -> " + parametros_meta[1]);
                     }
+                        miParticion.escribir_en_particion(NoEscribiendo, id, "asnwerCualquiera", Mylock);
                     break;
                 case "PUT":
                     System.out.println("El mensaje fue enviado por el IndexService");
