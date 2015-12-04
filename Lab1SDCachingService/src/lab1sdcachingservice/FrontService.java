@@ -13,6 +13,8 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.logging.*;
+import org.json.simple.JSONObject;
+
 class HiloFrontService extends Thread {
     protected Socket socketClient;
     protected DataOutputStream outToServer;
@@ -23,8 +25,11 @@ class HiloFrontService extends Thread {
     String sentence;
     String fromServer;
     
-    public HiloFrontService(int id) {
+    String query;
+    
+    public HiloFrontService(int id, String query) {
         this.id = id;
+        this.query = query;
     }
     @Override
     public void run() {
@@ -40,7 +45,7 @@ class HiloFrontService extends Thread {
             //sentence = inFromUser.readLine();
             
             String[] requests = {
-            "GET /respuestas/query1", // <p>hola mundo</>
+            "GET /respuestas/aslkd;askd;l ;ldsad", // <p>hola mundo</>
             "GET /users",
             "GET /users/1234",
             "GET /users/55556",
@@ -53,13 +58,14 @@ class HiloFrontService extends Thread {
             
             //int numero = Integer.parseInt(inFromUser.readLine());
             int numero = 0;
-
+            requests[numero] = requests[numero] + query;
             outToServer.writeBytes(requests[numero]+"\n");
             
-            System.out.println("Front Service envia mensaje");
+            System.out.println("Front Service envia mensaje "+requests[0]);
             
             //Recibimos del servidor
             fromServer = inFromServer.readLine();
+            
             System.out.println("Server response: " + fromServer);
             outToServer.close();
             socketClient.close();
@@ -72,11 +78,17 @@ public class FrontService {
     
     public static void main(String[] args) {
         ArrayList<Thread> clients = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            clients.add(new HiloFrontService(i));
+        String query = "Query ";
+        int numero;
+        
+        for (int i = 0; i < 1; i++) {
+            String numero_query = Integer.toString(i);
+            query = query + numero_query;
+            clients.add(new HiloFrontService(i, query));
         }
         for (Thread thread : clients) {
             thread.start();
         }
     }
+
 }

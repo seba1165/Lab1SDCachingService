@@ -12,6 +12,7 @@ package lab1sdcachingservice;
 import java.io.*;
 import java.net.*;
 import java.util.logging.*;
+import org.json.simple.JSONObject;
 public class HiloCachingService implements Runnable {
     //Atributos para conexion
     private Socket socket;
@@ -70,14 +71,23 @@ public class HiloCachingService implements Runnable {
             
             String[] tokens = request.split(" ");
             String parametros = tokens[1];
-            
+            int espacios = tokens.length;
             String http_method = tokens[0];
 
             String[] tokens_parametros = parametros.split("/");
-
             String resource = tokens_parametros.length > 1 ? tokens_parametros[1] : "";
-            String id = tokens_parametros.length > 2 ? tokens_parametros[2] : "";
-
+            String Parte_id1 = tokens_parametros.length > 2 ? tokens_parametros[2] : "";
+//            if () {
+//                
+//            }
+            int partesString = tokens.length - 2;
+            for (int i = 0; i < tokens.length; i++) {
+                System.out.println(tokens[i]);
+            }
+            
+            for (int i = 0; i < tokens_parametros.length; i++) {
+                System.out.println(tokens_parametros[i]);
+            }
             String meta_data = tokens.length > 2 ? tokens[2] : "";
             
             
@@ -94,6 +104,8 @@ public class HiloCachingService implements Runnable {
             
             System.out.println("La consulta se deberia encontrar en la posicion "+posicion_consulta);
             
+            JSONObject jo = new JSONObject();
+            
             switch (http_method) {
                 case "GET":
                     if (id == "") {
@@ -107,11 +119,16 @@ public class HiloCachingService implements Runnable {
                         String result;
                         result = miParticion.leer_en_particion(NoEscribiendo, id);
                          if (result == null) { // MISS
-                            System.out.println("MISS :(");
-                            //Miss para Front service
+                            jo.put("Result", "Miss");
+                            outToClient.writeBytes(jo.toJSONString());
                         }else{
-                            System.out.println("HIT !");
-                            //Hit para front service
+                            String reverse = new StringBuffer(fromClient).reverse().toString() + '\n';
+                            //Cambiar por JSON
+                            jo.put("Answer", result);
+                            jo.put("Query", id);
+                            jo.put("Result", "Hit");
+                 
+                            outToClient.writeBytes(jo.toJSONString());
                         }
                     }
                     break;
@@ -136,10 +153,6 @@ public class HiloCachingService implements Runnable {
                     System.out.println("Not a valid HTTP Request");
                     break;
             }
-            
-            String reverse = new StringBuffer(fromClient).reverse().toString() + '\n';
-            //Cambiar por JSON
-            outToClient.writeBytes(reverse);
             
         } catch (IOException ex) {
             Logger.getLogger(HiloCachingService.class.getName()).log(Level.SEVERE, null, ex);

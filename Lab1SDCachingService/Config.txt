@@ -1,2 +1,4 @@
 cachesize 6
 cachepartition 3
+static_cache% 20
+ 
