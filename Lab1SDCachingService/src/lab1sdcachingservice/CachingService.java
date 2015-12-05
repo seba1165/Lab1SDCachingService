@@ -48,7 +48,6 @@ public class CachingService {
 
         MemCache MemCompartida[] = new MemCache[canTpart];
         
-        System.out.println(resto);
         if (resto!=0 && resto!=size){
             for (int i = 0; i < canTpart-1; i++) {
                 MemCompartida[i] = new MemCache(tamPart);
@@ -63,15 +62,12 @@ public class CachingService {
             }
         }
         
-        MemCompartida[0].cache.put("query1", "answer1");
-        MemCompartida[0].cache.put("query2", "answer2");
-        MemCompartida[1].cache.put("query3", "answer3");
-        MemCompartida[1].cache.put("query4", "answer4");
-        MemCompartida[2].cache.put("query5", "answer5");
-        MemCompartida[2].cache.put("query6", "answer6");
-        
-        
-        System.out.println("");
+        MemCompartida[0].cache.put("Query 0", "answer 0");
+        MemCompartida[0].cache.put("Query 1", "answer 1");
+        MemCompartida[1].cache.put("Query 2", "answer 2");
+        MemCompartida[1].cache.put("Query 3", "answer 3");
+        MemCompartida[2].cache.put("Query 4", "answer 4");
+        MemCompartida[2].cache.put("Query 5", "answer 5");
         
         System.out.println("Inicializando CachingService... ");
            
