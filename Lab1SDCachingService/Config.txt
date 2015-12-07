@@ -1,4 +1,4 @@
-cachesize 6
-cachepartition 3
+cachesize 1000
+cachepartition 4 
 static_cache% 20
  

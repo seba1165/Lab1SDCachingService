@@ -74,17 +74,17 @@ class HiloIndexService implements Runnable{
                 "PUT /users/1234 username=giovanni", // aasdsadasdsa ACTUALIZA
             };
             
-            for (int i = 0; i < requests.length; i++) {
-                System.out.println(requests[i]);
-            }
-            System.out.print("Ingrese numero: ");
+//            for (int i = 0; i < requests.length; i++) {
+//                System.out.println(requests[i]);
+//            }
+//            System.out.print("Ingrese numero: ");
             int numero = 2;
             
             requests[numero] = requests[numero] + query +" body="+answer;
 
             outToServer.writeBytes(requests[numero]+"\n");
             
-            System.out.println("Front Service envia mensaje");
+            System.out.println("Index Service envia mensaje");
 
             outToServer.close();
             socketClient.close();
@@ -98,9 +98,8 @@ public class IndexService {
     public static void main(String[] args) {
         String query = "Query";
         String answer = "Answer";
-        int numero;
         
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 800; i++) {
             String numero_query = Integer.toString(i);
             String query2  = query + numero_query;
             String answer2 = answer + numero_query;

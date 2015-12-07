@@ -23,7 +23,8 @@ public class HiloCachingService implements Runnable {
     //Id del hilo 
     private int idSession;
     //Atributos para el manejo del cache
-    MemCache[] MemCompartida;
+    MemCache[] MemDinamica;
+    MemCache MemEstatica;
     MemCache miParticion;
     boolean condicion_particion[];
     int particiones;
@@ -33,10 +34,11 @@ public class HiloCachingService implements Runnable {
     //String para mensaje enviado por el cliente;
     String request;
     
-    public HiloCachingService(Socket socket, int id, MemCache[] MemCompartida, boolean[] condicion_particion, Object locks[]) throws IOException {
+    public HiloCachingService(Socket socket, int id, MemCache[] Mem_dinamica, MemCache Mem_estatica, boolean[] condicion_particion, Object locks[]) throws IOException {
         this.socket = socket;
         this.idSession = id;
-        this.MemCompartida = MemCompartida;
+        this.MemDinamica = Mem_dinamica;
+        this.MemEstatica = Mem_estatica;
         this.condicion_particion = condicion_particion;
         this.particiones = condicion_particion.length;
         this.locks = locks;
@@ -53,18 +55,14 @@ public class HiloCachingService implements Runnable {
     @Override
     public void run() {
         try {
-
             outToClient = new DataOutputStream(socket.getOutputStream());
             inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             //dis = new DataInputStream(socket.getInputStream());
             fromClient =inFromClient.readLine();
             request = fromClient;
             
-            System.out.println("Servidor "+ idSession);
-            
-            //System.out.println("Received: " + fromClient+" from client " + idSession);
+            //System.out.println("Servidor "+ idSession);
 
-            
             String[] tokens = request.split(" ");
             String parametros = tokens[1];
             int espacios = tokens.length;
@@ -72,34 +70,34 @@ public class HiloCachingService implements Runnable {
 
             String[] tokens_parametros = parametros.split("/");
             String resource = tokens_parametros.length > 1 ? tokens_parametros[1] : "";
-            //CAMBIAR ID!!!!!!!!!!!!!!!!!!!!
+
             String id = tokens_parametros.length > 2 ? tokens_parametros[2] : "";
             int cantidadQuerys=0;
-            System.out.println("Partes restantes del query: "+(tokens.length-2));
+//            System.out.println("Partes restantes del query: "+(tokens.length-2));
             
             if (tokens.length-2>0){
                 for (int i = 0; i < tokens.length-2; i++) {
                     id += " "+tokens[i+2];
                 }
             }
-            System.out.println("El query completo es "+id);
+//            System.out.println("El query completo es "+id);
             
             
-            for (int i = 0; i < tokens.length; i++) {
-                System.out.println(tokens[i]);
-            }
+//            for (int i = 0; i < tokens.length; i++) {
+//                System.out.println(tokens[i]);
+//            }
             
-            for (int i = 0; i < tokens_parametros.length; i++) {
-                System.out.println(tokens_parametros[i]);
-            }
+//            for (int i = 0; i < tokens_parametros.length; i++) {
+//                System.out.println(tokens_parametros[i]);
+//            }
             String meta_data = tokens.length > 2 ? tokens[2] : "";
             
             
-            System.out.println("\nConsulta: " + request);
-            System.out.println("HTTP METHOD: " + http_method);
-            System.out.println("Resource: " + resource);
-            System.out.println("ID:       " + id);
-            System.out.println("META DATA:    " + meta_data);
+//            System.out.println("\nConsulta: " + request);
+//            System.out.println("HTTP METHOD: " + http_method);
+//            System.out.println("Resource: " + resource);
+//            System.out.println("ID:       " + id);
+//            System.out.println("META DATA:    " + meta_data);
             
             //System.out.println("La consulta se deberia encontrar en la posicion "+posicion_consulta);
             
@@ -114,42 +112,56 @@ public class HiloCachingService implements Runnable {
                         // hit o miss
                     } else {
                         int posicion_consulta = funcion_hash(id, condicion_particion.length);
-                        miParticion = MemCompartida[posicion_consulta];
+                        miParticion = MemDinamica[posicion_consulta];
                         NoEscribiendo = condicion_particion[posicion_consulta];
                         Mylock = locks[posicion_consulta];
                         System.out.println("El mensaje fue enviado por el FrontService");
                         System.out.println("Buscando en el cache de '" + resource + "' el registro con id " + id);
                         String result;
-                        result = miParticion.leer_en_particion(NoEscribiendo, id);
-                         if (result == null) { // MISS
-                            jo.put("Result", "Miss");
-                            System.out.println("Miss enviado");
-                            outToClient.writeBytes(jo.toJSONString());
+                        String result2;
+                        //Primero se busca en memoria estatica
+                        result = MemEstatica.leer_en_particion(NoEscribiendo, id);
+                        //result = miParticion.leer_en_particion(NoEscribiendo, id);
+                         if (result == null) { // MISS en estatica
+                             //Se busca en memoria dinamica
+                             result2 = miParticion.leer_en_particion(NoEscribiendo, id);
+                             if (result2 == null) { // MISS dinamica
+                                jo.put("Result", "Miss");
+                                System.out.println("Miss en mem dinamica "+posicion_consulta);
+                                outToClient.writeBytes(jo.toJSONString());
+                            }else{ //Hit en dinamica
+                                jo.put("Result", "Hit");
+                                jo.put("Query", id);
+                                jo.put("Answer", result2);
+                                outToClient.writeBytes(jo.toJSONString());
+                                System.out.println("Hit en mem dinamica");
+                            }
                         }else{
-                            //Cambiar por JSON
-                            jo.put("Result", "Hit");
-                            jo.put("Query", id);
-                            jo.put("Answer", result);
+                             //Hit en mem estatica
+                             jo.put("Result", "Hit");
+                             jo.put("Query", id);
+                             jo.put("Answer", result);
                  
-                            outToClient.writeBytes(jo.toJSONString());
-                            System.out.println("Hit enviado");
+                             outToClient.writeBytes(jo.toJSONString());
+                             System.out.println("Hit en mem estatica");
                         }
                     }
                     break;
                 case "POST":
-                    System.out.println("El mensaje fue enviado por el IndexService");
-                    System.out.println("Creando un usuario con los siguientes datos: (" + meta_data + ")");
+                    //System.out.println("El mensaje fue enviado por el IndexService");
+                    //System.out.println("Creando un usuario con los siguientes datos: (" + meta_data + ")");
                     for (String params : meta_data.split("&")) {
                         String[] parametros_meta = params.split("=");
-                        System.out.println("\t* " + parametros_meta[0] + " -> " + parametros_meta[1]);
+                        //System.out.println("\t* " + parametros_meta[0] + " -> " + parametros_meta[1]);
                     }
                     String[] querySplit = id.split(" ");
                     String[] answerSplit = querySplit[1].split("=");
                     int posicion_consulta = funcion_hash(querySplit[0], condicion_particion.length);
-                    miParticion = MemCompartida[posicion_consulta];
+                    miParticion = MemDinamica[posicion_consulta];
                     NoEscribiendo = condicion_particion[posicion_consulta];
                     Mylock = locks[posicion_consulta];
                     miParticion.escribir_en_particion(NoEscribiendo, querySplit[0], answerSplit[1], Mylock);
+                    System.out.println("Se escribio "+querySplit[0]+" en el cache dinamico "+posicion_consulta);
                     break;
                 case "PUT":
                     System.out.println("El mensaje fue enviado por el IndexService");

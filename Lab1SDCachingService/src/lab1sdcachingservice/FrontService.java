@@ -15,10 +15,10 @@ import java.util.*;
 public class FrontService {
     
     public static void main(String[] args) {
-        String query = "Query ";
+        String query = "Query";
         int numero;
         
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 800; i++) {
             String numero_query = Integer.toString(i);
             String query2  = query + numero_query;
             (new Thread (new HiloFrontService(i, query2))).start();   

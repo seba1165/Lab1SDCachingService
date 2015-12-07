@@ -54,10 +54,10 @@ public class HiloFrontService implements Runnable{
             "GET /users/55556",
             "ABC /users/1234",};
             
-            for (int i = 0; i < requests.length; i++) {
-                System.out.println(requests[i]);
-            }
-            System.out.print("Ingrese numero: ");
+//            for (int i = 0; i < requests.length; i++) {
+//                System.out.println(requests[i]);
+//            }
+//            System.out.print("Ingrese numero: ");
             
             //int numero = Integer.parseInt(inFromUser.readLine());
             int numero = 0;
