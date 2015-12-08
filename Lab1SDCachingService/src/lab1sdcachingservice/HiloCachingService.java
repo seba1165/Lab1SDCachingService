@@ -55,6 +55,7 @@ public class HiloCachingService implements Runnable {
     @Override
     public void run() {
         try {
+            //Recibe consultas del Front Service u ordenes de ingresar informacion al cache desde el Index Service
             outToClient = new DataOutputStream(socket.getOutputStream());
             inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             //dis = new DataInputStream(socket.getInputStream());
@@ -62,7 +63,7 @@ public class HiloCachingService implements Runnable {
             request = fromClient;
             
             //System.out.println("Servidor "+ idSession);
-
+            //Los mensajes recibidos tienen el formato REST
             String[] tokens = request.split(" ");
             String parametros = tokens[1];
             int espacios = tokens.length;
@@ -154,6 +155,7 @@ public class HiloCachingService implements Runnable {
                         String[] parametros_meta = params.split("=");
                         //System.out.println("\t* " + parametros_meta[0] + " -> " + parametros_meta[1]);
                     }
+                    //Si se recibe un post, se ingresa la informacion en el cache dinamico
                     String[] querySplit = id.split(" ");
                     String[] answerSplit = querySplit[1].split("=");
                     int posicion_consulta = funcion_hash(querySplit[0], condicion_particion.length);
@@ -181,7 +183,7 @@ public class HiloCachingService implements Runnable {
         }
         desconnectar();
     }
-    
+    //Funcion para calcular en que particion del cache se guarda la informacion que ha llegado desde el index Service
     int funcion_hash(String x, int particiones) {
         char ch[];
         ch = x.toCharArray();

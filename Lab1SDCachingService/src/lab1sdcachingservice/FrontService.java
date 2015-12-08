@@ -13,7 +13,7 @@ import java.util.*;
 
 
 public class FrontService {
-    
+    //Front Service envia consultas al Caching Service
     public static void main(String[] args) {
         String query = "Query";
         int numero;
