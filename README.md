@@ -2,10 +2,11 @@
 Implementación de Caching Service
 
 Parámetros del cache:
-  Para configurar los parámetros del cache, se debe editar el archivo Config.txt. En este archivo existen 3 lineas para manipular el       cache:
+  Para configurar los parámetros del cache, se debe editar el archivo Config.txt. En este archivo existen 4 lineas para manipular el       cache:
     La primera linea corresponde al tamaño.
     La segunda a la cantidad de particiones.
     La tercera al porcentaje de memoria estática para el cache.
+    La cuarta linea corresponde al puerto para escuchar los mensajes provenientes del Front y del Index
   
 Cache Estático:
   Para llenar el cache estático se utiliza un archivo txt llamado Mem_Estatica, donde estarán algunas de las páginas mas visitadas de la   web.En caso de que la parte estática del cache sea mayor a la cantidad de páginas en el txt, se rellena el espacio restante con querys   y answer con números. Por ejemplo, si se tienen 10 lineas en el Mem_Estatica.txt, y la parte estática del cache es de tamaño 15, los 5   espacios restantes se llenarían así:
