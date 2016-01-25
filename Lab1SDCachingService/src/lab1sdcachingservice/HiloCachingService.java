@@ -7,7 +7,7 @@ package lab1sdcachingservice;
 
 /**
  *
- * @author Seba
+ * @author Frank
  */
 import java.io.*;
 import java.net.*;
@@ -17,7 +17,7 @@ public class HiloCachingService implements Runnable {
     //Atributos para conexion
     private Socket socket;
     private DataOutputStream outToClient;
-    BufferedReader inFromClient;
+    DataInputStream entradaIndex;
     String fromClient;
     String processedData;
     //Id del hilo 
@@ -57,11 +57,12 @@ public class HiloCachingService implements Runnable {
         try {
             //Recibe consultas del Front Service u ordenes de ingresar informacion al cache desde el Index Service
             outToClient = new DataOutputStream(socket.getOutputStream());
-            inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("Llega mensaje");
+	    entradaIndex = new DataInputStream(socket.getInputStream());
             //dis = new DataInputStream(socket.getInputStream());
-            fromClient =inFromClient.readLine();
+            fromClient = entradaIndex.readLine();
             request = fromClient;
-            
+            System.out.println(request);
             //System.out.println("Servidor "+ idSession);
             //Los mensajes recibidos tienen el formato REST
             String[] tokens = request.split(" ");
@@ -149,21 +150,26 @@ public class HiloCachingService implements Runnable {
                     }
                     break;
                 case "POST":
-                    //System.out.println("El mensaje fue enviado por el IndexService");
-                    //System.out.println("Creando un usuario con los siguientes datos: (" + meta_data + ")");
-                    for (String params : meta_data.split("&")) {
-                        String[] parametros_meta = params.split("=");
-                        //System.out.println("\t* " + parametros_meta[0] + " -> " + parametros_meta[1]);
+                    System.out.println("");
+                    System.out.println("El mensaje fue enviado por el IndexService");
+                    String partes[] = id.split(" body=");
+                    for (int i = 0; i < partes.length; i++) {
+                        System.out.println(partes[i]);
                     }
-                    //Si se recibe un post, se ingresa la informacion en el cache dinamico
-                    String[] querySplit = id.split(" ");
-                    String[] answerSplit = querySplit[1].split("=");
-                    int posicion_consulta = funcion_hash(querySplit[0], condicion_particion.length);
+                           
+//                    for (String params : meta_data.split("&")) {
+//                        String[] parametros_meta = params.split("=");
+//                        //System.out.println("\t* " + parametros_meta[0] + " -> " + parametros_meta[1]);
+//                    }
+//                    //Si se recibe un post, se ingresa la informacion en el cache dinamico
+//                    String[] querySplit = id.split(" ");
+//                    String[] answerSplit = querySplit[1].split("=");
+                    int posicion_consulta = funcion_hash(partes[0], condicion_particion.length);
                     miParticion = MemDinamica[posicion_consulta];
                     NoEscribiendo = condicion_particion[posicion_consulta];
                     Mylock = locks[posicion_consulta];
-                    miParticion.escribir_en_particion(NoEscribiendo, querySplit[0], answerSplit[1], Mylock);
-                    System.out.println("Se escribio "+querySplit[0]+" en el cache dinamico "+posicion_consulta);
+                    miParticion.escribir_en_particion(NoEscribiendo, partes[0], partes[1], Mylock);
+                    System.out.println("Se escribio "+partes[0]+" en el cache dinamico "+posicion_consulta);
                     break;
                 case "PUT":
                     System.out.println("El mensaje fue enviado por el IndexService");
@@ -195,3 +201,4 @@ public class HiloCachingService implements Runnable {
     }
      
 }
+

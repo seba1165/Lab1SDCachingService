@@ -7,7 +7,7 @@ package lab1sdcachingservice;
 
 /**
  *
- * @author Seba
+ * @author Frank
  */
 import java.io.*;
 import java.net.*;
@@ -19,9 +19,11 @@ public class CachingService {
         String [] cacheCant;
         String [] cachePart;
         String [] cachePorc;
+        String [] cachePuerto;
         int size;
         int canTpart;
         int porcentaje;
+        int puerto;
         try{
             //Config tiene los parametros de configuracion del cache
             File archivo = new File("Config.txt");
@@ -36,14 +38,17 @@ public class CachingService {
             String linea1 = br.readLine();
             String linea2 = br.readLine();
             String linea3 = br.readLine();
+            String linea4 = br.readLine();
             
             cacheCant = linea1.split(" ");
             cachePart = linea2.split(" ");
             cachePorc = linea3.split(" ");
+            cachePuerto = linea4.split(" ");
             
             size = Integer.parseInt(cacheCant[1]);
             canTpart = Integer.parseInt(cachePart[1]);
             porcentaje = Integer.parseInt(cachePorc[1]);
+            puerto = Integer.parseInt(cachePuerto[1]);
             
             //Validacion de parametros del config
             //Si los parametros son menores a 1, el caching service no corre
@@ -55,6 +60,7 @@ public class CachingService {
                 int cant_mem_dinamica = size - cant_mem_estatica;
                 int tamPart = cant_mem_dinamica/canTpart;
                 int resto = cant_mem_dinamica%canTpart;
+                System.out.println("Las particiones son "+canTpart);
                 System.out.println("La cantidad de memoria estatica es "+cant_mem_estatica);
                 System.out.println("La cantidad de memoria dinamica es "+cant_mem_dinamica);
                 //Si las particiones de la mem dinamica son mayores al tamaño del cache de esta, se utiliza solo 1
@@ -122,13 +128,12 @@ public class CachingService {
                     }
                 }
 
-                Mem_estatica.print();
                 fr2.close();
                 System.out.println("Inicializando CachingService... ");
 
                 try {
-                    //Socket para el servidor en el puerto 5000
-                    acceptSocket = new ServerSocket(5000);
+                    //Socket para el IndexService y el Front Service
+                    acceptSocket = new ServerSocket(puerto);
                     System.out.print("Server is running...");
                     System.out.println("\t[OK]\n");
                     int idSession = 0;

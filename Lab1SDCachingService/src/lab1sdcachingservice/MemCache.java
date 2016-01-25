@@ -5,6 +5,10 @@
  */
 package lab1sdcachingservice;
 
+/**
+ *
+ * @author Frank
+ */
 import java.util.LinkedHashMap;
 
 /**
@@ -46,11 +50,7 @@ public class MemCache {
         }
     }
     
-    public void print() {
-        System.out.println("===== My LRU Cache =====");
-        System.out.println("| " + String.join(" | ", cache.keySet()) + " | ");
-        System.out.println("========================");
-    }
+    
     //Si algún hilo se encuentra escribiendo en la particion del cache, no se puede leer
     public String leer_en_particion(boolean NoEscribiendo, String query) {
         while(!NoEscribiendo){//Espera mientras alguien este escribiendo   
