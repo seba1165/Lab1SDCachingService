@@ -1,4 +1,4 @@
 cachesize 1000
 cachepartition 4 
 static_cache% 20
- 
+port 8090
